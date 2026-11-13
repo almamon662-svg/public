@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Almamoon Admin Dashboard</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f2;
+  color: #222;
+  padding: 30px 16px;
+}
+
+.container {
+  max-width: 750px;
+  margin: auto;
+}
+
+header {
+  margin-bottom: 30px;
+}
+
+header h1 {
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+header p {
+  color: #777;
+}
+
+.card {
+  background: white;
+  padding: 28px;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px rgba(0,0,0,.05);
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 18px 0 8px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 24px;
+  border: none;
+  border-radius: 8px;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+#message {
+  margin-top: 18px;
+  line-height: 1.5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+  <h1>Almamoon.</h1>
+  <p>Admin Dashboard · Product Management</p>
+</header>
+
+<div class="card">
+
+<h2>Upload New Product</h2>
+
+<form id="productForm">
+
+<label>Admin Secret</label>
+<input type="password" id="secret" required
+placeholder="Enter admin secret">
+
+<label>Product Name</label>
+<input type="text" id="title" required
+placeholder="Example: Instagram Canva Template">
+
+<label>Description</label>
+<textarea id="description"
+placeholder="Describe your product"></textarea>
+
+<label>Product Price</label>
+<input type="number" id="price" required
+min="0.01" step="0.01" placeholder="500">
+
+<label>Currency</label>
+<select id="currency">
+<option value="BDT">BDT</option>
+</select>
+
+<label>Product Cover Image</label>
+<input type="file" id="image"
+accept="image/png,image/jpeg,image/webp">
+
+<label>Downloadable PDF</label>
+<input type="file" id="pdf"
+accept="application/pdf" required>
+
+<button type="submit" id="uploadBtn">
+Upload Product
+</button>
+
+<p id="message"></p>
+
+</form>
+</div>
+</div>
+
+<script>
+const form = document.getElementById("productForm");
+const message = document.getElementById("message");
+const uploadBtn = document.getElementById("uploadBtn");
+
+form.addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = "Uploading...";
+
+  message.textContent = "";
+
+  const data = new FormData();
+
+  data.append("title", document.getElementById("title").value);
+  data.append("description", document.getElementById("description").value);
+  data.append("price", document.getElementById("price").value);
+  data.append("currency", document.getElementById("currency").value);
+  data.append("pdf", document.getElementById("pdf").files[0]);
+
+  const image = document.getElementById("image").files[0];
+
+  if (image) {
+    data.append("image", image);
+  }
+
+  try {
+    const response = await fetch("/api/admin/products", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + document.getElementById("secret").value
+      },
+      body: data
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Upload failed");
+    }
+
+    message.textContent = "Product uploaded successfully!";
+    message.style.color = "green";
+
+    form.reset();
+
+  } catch (error) {
+    message.textContent = error.message;
+    message.style.color = "red";
+  } finally {
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "Upload Product";
+  }
+});
+</script>
+
+</body>
+</html>
